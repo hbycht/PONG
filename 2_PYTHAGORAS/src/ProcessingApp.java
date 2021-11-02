@@ -57,8 +57,8 @@ public class ProcessingApp extends PApplet
     {
         /// Calculations \\\
         // Lengths
-        lA = abs(xB - xA);
-        lB = abs(yB - yC);
+        lA = xB - xA;
+        lB = yB - yC;
         lC = pythagoras(lA, lB);
 
         // Positions of the labels
@@ -91,7 +91,7 @@ public class ProcessingApp extends PApplet
         }
 
         // Control if point B is hovered OR picked AND point A & B is NOT hovered (last thing is important, otherwise two points would be changed)
-        if((hoverB() || pickedB) && !hoverA() && !hoverC())
+        if((hoverB() || pickedB) && !hoverA() && !pickedA && !hoverC() && !pickedC)
         {
             // change the radius of the point, so the user has an optical feedback from his interaction
             rB = 30;
