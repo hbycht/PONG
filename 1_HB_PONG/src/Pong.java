@@ -55,6 +55,8 @@ public class Pong extends PApplet
         topPG = weightBoarder + spacingBoarder;
         bottomPG = height - weightBoarder - spacingBoarder;
 
+        println(translateNumbers(11));
+
         noLoop();
     }
 
@@ -192,18 +194,6 @@ public class Pong extends PApplet
             vRight = abs(vRight) * -1;
         }
 
-//        if(pB[0] - rBall < xPadL + weightBoarder/2 || pB[0] + rBall > xPadR - weightBoarder/2)
-//        {
-//            if(pB[1] > yPadL - hPadL/2 && pB[1] < yPadL + hPadL/2 || pB[1] > yPadR - hPadR/2 && pB[1] < yPadR + hPadR/2)
-//            {
-//                vRight *= -1;
-//            }
-//            else
-//            {
-//                vMulti *= 1.5;
-//            }
-//        }
-
         // Y - Collision with top & bottom boarder
         if(pB[1] - rBall < topPG || pB[1] + rBall > bottomPG)
         {
@@ -282,17 +272,16 @@ public class Pong extends PApplet
 
     private String translateNumbers(int num)
     {
-
         char tens = 'x';
         char ones = 'x';
 
         String sNum = ""+num;
         if(sNum.length() == 2){
-            tens = sNum.charAt(1);
-            ones = sNum.charAt(2);
+            tens = sNum.charAt(0);
+            ones = sNum.charAt(1);
         }
         else {
-            char E = sNum.charAt(1);
+            char E = sNum.charAt(0);
         }
 
         String numInWords = null;
@@ -372,3 +361,4 @@ public class Pong extends PApplet
 
     }
 }
+

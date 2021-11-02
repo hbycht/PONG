@@ -152,7 +152,7 @@ public class ProcessingApp extends PApplet
         ellipse(xB, yB, rB, rB);
         ellipse(xC, yC, rC, rC);
 
-        // Write labels of the lengths
+        // Write labels for the lengths
         fill(255, 0, 0);
         textSize(20);
         textAlign(CENTER);
@@ -160,11 +160,11 @@ public class ProcessingApp extends PApplet
         text("b", xTB, yTB);
         text("c", xTC, yTC);
 
-        // Write down Lengths of the sides to the top left corner
+        // Write down lengths of the sides to the top left corner
         textAlign(LEFT);
-        text("a = " + lA, 30, 60);
-        text("b = " + lB, 30, 80);
-        text("c = " + lC, 30, 100);
+        text("a = " + abs(lA), 30, 60);
+        text("b = " + abs(lB), 30, 80);
+        text("c = " + abs(lC), 30, 100);
     }
 
     private float pythagoras(float length1, float length2)
