@@ -242,7 +242,8 @@ public class NumberTranslator extends PApplet
                 lösche den ersten Block aus der BlockListe
 
     zerteileInDreierBloecke(ZiffernListe)
-        füge der ZiffernListe an erste Stelle so viele "0" hinzu, bis Länge der ZiffernListe geteilt durch 3 keinen Rest ergibt     // zB. 4321 wird zu 00 . 4321 = 004321
+        füge der ZiffernListe an erste Stelle so viele "0" hinzu,
+        bis Länge der ZiffernListe geteilt durch 3 keinen Rest ergibt     // zB. 4321 wird zu 00 . 4321 = 004.321
 
         erstelle eine Liste mit dem Namen BlockListe
 

@@ -11,11 +11,11 @@ public class Pong extends PApplet
     // PLAYGROUND //
     int wPlayground = 1000;     // Width Playground
     int hPlayground = 500;      // Height Playground
-    int weightBoarder = 20;     // Thickness of the Boarders
-    int spacingBoarder = 20;    // Spacing from Boarder to Window
-    int winH = hPlayground + 2 * weightBoarder + spacingBoarder; // Set window height
-    int cBackground = 140;      // Color Playground (Grayscale)
-    int cBoarder = 60;          // Color Boarder
+    int weightBoarder = 30;     // Thickness of the Boarders
+    int spacingBoarder = 10;    // Spacing from Boarder to Window
+    int winH = hPlayground + 2 * (weightBoarder + spacingBoarder); // Set window height
+    int cBackground = 60;      // Color Playground (Grayscale)
+    int cBoarder = 0;          // Color Boarder
     int topPG;                  // Top Boarder of Playground
     int bottomPG;               // Bottom Boarder of Playground
 
@@ -34,19 +34,22 @@ public class Pong extends PApplet
     int xPadL = 10;     // x-Position of the left Paddel
     int yPadL = winH/2; // y-Position of the left Paddel
     int hPadL = 120;    // Height of the left Paddel
-    int cPadL = 40;     // Color of the left Paddel
+    int cPadL = color(100);     // Color of the left Paddel
 
     // Right Paddel
     int xPadR = wPlayground - xPadL;    // x-Position of the right Paddel
     int yPadR = winH/2;                 // y-Position of the right Paddel
     int hPadR = hPadL;                  // Height of the right Paddel
-    int cPadR = 40;                     // Color of the right Paddel
+    int cPadR = color(100);                     // Color of the right Paddel
 
     // PLAYERS //
-    int scoreL = 123456789;
-    int scoreR = 999998;
+    int scoreL = 0;
+    int scoreR = 0;
+    int scorer = 0;
 
     // STYLES //
+    boolean fullGrafix = false;
+    int cScore = color(255);
 
     public void settings()
     {
@@ -59,6 +62,8 @@ public class Pong extends PApplet
         topPG = weightBoarder + spacingBoarder;
         bottomPG = height - weightBoarder - spacingBoarder;
 
+        colorMode(HSB);
+
         noLoop();
     }
 
@@ -68,7 +73,7 @@ public class Pong extends PApplet
         movePaddel();
         moveBall();
 
-        showStats();
+        //showStats();
     }
 
     public void mousePressed()
@@ -76,27 +81,81 @@ public class Pong extends PApplet
         pBall[0] = width/2;
         pBall[1] = height/2;
         setBallDirections();
+        scorer = 0;
         loop();
+    }
+
+    public void keyPressed() {
+        if (key == 'g') {
+            fullGrafix = !fullGrafix;
+        }
+        else if (key == 'r') {
+            pBall[0] = width/2;
+            pBall[1] = height/2;
+            scoreR = 0;
+            scoreL = 0;
+            noLoop();
+            setupPlayground();
+            drawBall();
+            drawPaddel();
+        }
     }
 
     private void setupPlayground()
     {
         // * DRAWING PLAYGROUND * //
-        // Settings
-        background(cBackground);
-        fill(cBoarder);
-        noStroke();
-        rectMode(CORNER);
+        colorMode(HSB);
+
+        if(fullGrafix) // Extra cool GRAFIXXX!!1!
+        {
+            // Settings
+            background(0.7f * 255, 0.6f * 255, 0.2f * 255);
+            fill(130, 0.5f * 255, 0.6f * 255);
+
+            cPadL = color(130, 0.7f * 255, 0.8f * 255);
+            cPadR = color(130, 0.7f * 255, 0.8f * 255);
+            cBall = color(30, 0.7f * 255, 0.9f * 255);
+            cScore = color(30, 0.8f * 255, 1.0f * 255);
+
+            noStroke();
+
+            // Drawing boarders top & bottom
+            rect(0, 0, width, weightBoarder + spacingBoarder);
+            rect(0, bottomPG, width, weightBoarder + spacingBoarder);
+
+            // Drawing CrossCircle
+            int radius = 20;
+            drawCrossCircle(radius);
+        }
+        else // Normal Graphics
+        {
+            // Settings
+            background(cBackground);
+            fill(cBoarder);
+
+            cPadL = color(140);
+            cPadR = color(140);
+            cBall = color(200);
+            cScore = color(180);
+
+            noStroke();
+        }
 
         // Drawing boarders top & bottom
-        rect(0, spacingBoarder, width, weightBoarder);
-        rect(0, bottomPG, width, weightBoarder);
-        /*// Additional elements top & bottom;
-        rect(0, 0, width, topPG);
-        rect(0, bottomPG, width, topPG);*/
+        rect(0, 0, width, weightBoarder + spacingBoarder);
+        rect(0, bottomPG, width, weightBoarder + spacingBoarder);
 
-        // Drawing middle line
-        int numLines = 12;
+        showScore();
+
+        // Infos for keyboard interaction
+        fill(240);
+        textAlign(CENTER);
+        textSize(weightBoarder * 0.6f);
+        text("CONTROLS: 'R' to reset score | 'G' for full graphics", width/2, bottomPG + weightBoarder * 0.8f);
+    }
+
+    private void drawMiddleLine(int numLines)
+    {
         int lenLines = hPlayground / (numLines * 2 + 1);
         fill(255);
         for(int i = 0; i < numLines; i++)
@@ -107,8 +166,72 @@ public class Pong extends PApplet
                     lenLines
             );
         }
+    }
 
-        showScore();
+    private void drawCrossCircle(int radius)
+    {
+        int midX = width / 2;
+        int midY = height / 2;
+        float spacingX = 12;
+        float spacingY = 11;
+
+        // let the spacing oscillate
+        spacingX *= sin(frameCount / 30f) * 0.1 + 1;
+
+        // Style
+        int hue = 0;
+        int hueChange = 7;
+        strokeWeight(1);
+
+        for(int i = 0; i < radius; i++)
+        {
+            for(int j = radius - i; j > 0; j--)
+            {
+                // right side
+                if(scorer == -1) // if left player scores
+                {
+                    stroke(240, 255, 255); // set color of the right "arrow" side to red
+                }
+                else // else:
+                {
+                    //stroke(hue + 2f * j * hueChange, 255, 200); // set to the pattern color
+                    stroke(120 + j * hueChange/8f, 255, hue + 2f * j * hueChange); // set to the pattern color
+                }
+                // bottom right part
+                drawCross(midX + i * spacingX, midY + j * spacingY - spacingY);
+                // top right part
+                drawCross(midX + i * spacingX, midY - j * spacingY + spacingY);
+
+                // left side
+                if(scorer == 1) // if right player scores
+                {
+                    stroke(240, 255, 255); // set color of the left "arrow" side to red
+                }
+                else // else:
+                {
+                    //stroke(hue + 2f * j * hueChange, 255, 200); // set to the pattern color
+                    stroke(120 + j * hueChange/8f, 255, hue + 2f * j * hueChange); // set to the pattern color
+                }
+                // bottom left part
+                drawCross(midX - i * spacingX, midY + j * spacingY - spacingY);
+                // top left part
+                drawCross(midX - i * spacingX, midY - j * spacingY + spacingY);
+
+                spacingY *= 0.998f;
+            }
+            hue += hueChange;
+            spacingX *= 1.02f;
+        }
+        noStroke();
+    }
+
+    private void drawCross(float xPos, float yPos)
+    {
+        int diameter = 6;
+        // horizontal line
+        line(xPos - diameter/2, yPos, xPos + diameter/2, yPos);
+        // vertical line
+        line(xPos, yPos - diameter/2, xPos, yPos + diameter/2);
     }
 
     private void movePaddel()
@@ -171,8 +294,8 @@ public class Pong extends PApplet
         // Refresh Ball Position
         pBall[0] += vRight * vMulti;
         pBall[1] += vDown * vMulti;
-        // Speed up the Ball speed a bit
-        vMulti *= vMultiChange;
+        // Speed up the Ball speed a bit, but maximum to 10
+        vMulti = min(vMulti * vMultiChange, 10);
 
         drawBall();
 
@@ -214,6 +337,8 @@ public class Pong extends PApplet
         vMulti = vMultiStart;
         vRight = random(-1, 1) < 0 ? random(-0.5f, -1) : random(0.5f, 1);
         vDown = random(-1, 1);
+        //vRight = 3;
+        //vDown = 0;
     }
 
     private void handleGoal()
@@ -222,6 +347,7 @@ public class Pong extends PApplet
         if(pBall[0] - rBall < 0)
         {
             scoreR++;
+            scorer = 1;
             noLoop();
 
             setupPlayground();
@@ -232,6 +358,7 @@ public class Pong extends PApplet
         if(pBall[0] + rBall > width)
         {
             scoreL++;
+            scorer = -1;
             noLoop();
 
             setupPlayground();
@@ -265,17 +392,17 @@ public class Pong extends PApplet
     private void showScore()
     {
         // Show Scores
-        fill(200);
-        textSize(16);
-        textLeading(20);
+        fill(cScore);
+        textSize(weightBoarder * 0.6f);
+        textLeading(weightBoarder * 0.8f);
         // Left Score
         textAlign(RIGHT);
-        text("("+scoreL+")", width/2 - 20, 20);
-        text(translateNumToWords(scoreL), width/2 - 20, 46);
+        text("("+scoreL+")", width/2 - 20, topPG - 10);
+        text(translateNumToWords(scoreL), width/2 - 20, 60);
         // Right Score
         textAlign(LEFT);
-        text("("+scoreR+")", width/2 + 20, 20);
-        text(translateNumToWords(scoreR), width/2 + 20, 46);
+        text("("+scoreR+")", width/2 + 20, topPG - 10);
+        text(translateNumToWords(scoreR), width/2 + 20, 60);
     }
 
     private String translateNumToWords(int inputNum)
