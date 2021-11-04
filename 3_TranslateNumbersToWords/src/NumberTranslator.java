@@ -1,10 +1,10 @@
 import processing.core.PApplet;
 
-public class ProcessingApp extends PApplet
+public class NumberTranslator extends PApplet
 {
     public static void main(String[] args)
     {
-        PApplet.main("ProcessingApp");
+        PApplet.main("NumberTranslator");
     }
 
     // Space for Inits.
@@ -12,7 +12,7 @@ public class ProcessingApp extends PApplet
 
     public void settings()
     {
-        size(600, 300);
+        size(600, 400);
     }
 
     public void setup()
@@ -20,10 +20,14 @@ public class ProcessingApp extends PApplet
         background(0);
         fill(200);
         textSize(20);
-        text(100, 200, 200);
-        int number = 123000789;
+        int number = 11012010;
         println(number);
         println(translateNumToWords(number));
+
+        fill(255);
+        text(number, 200, 100);
+        fill(255, 130, 130);
+        text(translateNumToWords(number), 200, 150);
     }
 
     public void draw()
@@ -73,19 +77,15 @@ public class ProcessingApp extends PApplet
                 // but just if the actual block is NOT 000
                 if(blockList[0][0] + blockList[0][1] + blockList[0][2] > 0)
                 {
-                    outputWords += translateBlock(blockList[0]);       // Translation of the actual block of three digits
-                    outputWords += addBlockEnding(blockList.length);   // Add the typical ending to the block e.g. "million"
-
-                    //println(blockList[0]);
-                    //outputWords += blockList.length;
+                    outputWords += translateBlock(blockList[0]);                    // Translation of the actual block of three digits
+                    outputWords += " " + addBlockEnding(blockList.length) + "\n";   // Add the corresponding ending to the block e.g. "million"
                 }
 
                 // delete the actual block
                 blockList = (int[][]) subset(blockList, 1, blockList.length - 1);
             }
 
-
-            return outputWords;
+            return outputWords.toUpperCase();
         }
     }
 
@@ -93,9 +93,16 @@ public class ProcessingApp extends PApplet
     {
         String outputWords = "";
 
+        // translate the hundreds digit
         outputWords += translateHundreds(block[0]);
+        outputWords += block[1]+block[2] > 0 && block[0] > 0 ? " " : ""; // just add a space to the string, if tens or ones are NOT 0 AND hundreds are also NOT 0
+
+        // translate the tens digit
         outputWords += translateTens(block[1]);
-        outputWords += translateOnes(block[2]);
+        outputWords += block[2] > 0 && block[1] > 1 ? " " : ""; // just add a space to the string, if ones are NOT 0 AND tens are also NOT 0 or 1
+
+        // translate the ones digit
+        outputWords += translateOnes(block[1], block[2]); // we have to transmit the tens AND the ones for also handling the numbers 10-19
 
         return outputWords;
     }
@@ -109,52 +116,88 @@ public class ProcessingApp extends PApplet
         return "";
     }
 
-    private String translateTens(int tens) {
+    private String translateTens(int tens)
+    {
         switch (tens) {
             case 2:
-                return " twenty";
+                return "twenty";
             case 3:
-                return " thirty";
+                return "thirty";
             case 4:
-                return " forty";
+                return "forty";
             case 5:
-                return " fifty";
+                return "fifty";
             case 6:
-                return " sixty";
+                return "sixty";
             case 7:
-                return " seventy";
+                return "seventy";
             case 8:
-                return " eighty";
+                return "eighty";
             case 9:
-                return " ninety";
+                return "ninety";
             default:
                 return "";
         }
+
     }
 
     private String translateOnes(int ones)
     {
         switch (ones) {
             case 1:
-                return " one";
+                return "one";
             case 2:
-                return " two";
+                return "two";
             case 3:
-                return " three";
+                return "three";
             case 4:
-                return " four";
+                return "four";
             case 5:
-                return " five";
+                return "five";
             case 6:
-                return " six";
+                return "six";
             case 7:
-                return " seven";
+                return "seven";
             case 8:
-                return " eight";
+                return "eight";
             case 9:
-                return " nine";
+                return "nine";
             default:
                 return "";
+        }
+    }
+
+    private String translateOnes(int tens, int ones)
+    {
+        if(tens != 1) {
+            return translateOnes(ones);
+        }
+        else
+        {
+            switch (ones) {
+                case 0:
+                    return "ten";
+                case 1:
+                    return "eleven";
+                case 2:
+                    return "twelve";
+                case 3:
+                    return "thirteen";
+                case 4:
+                    return "fourteen";
+                case 5:
+                    return "fifteen";
+                case 6:
+                    return "sixteen";
+                case 7:
+                    return "seventeen";
+                case 8:
+                    return "eighteen";
+                case 9:
+                    return "nineteen";
+                default:
+                    return "";
+            }
         }
     }
 
@@ -163,21 +206,21 @@ public class ProcessingApp extends PApplet
         switch(index)
         {
             case 2:
-                return " thousand";
+                return "thousand";
             case 3:
-                return " million";
+                return "million";
             case 4:
-                return " billion";
+                return "billion";
             case 5:
-                return " trillion";
+                return "trillion";
             case 6:
-                return " quadrillion";
+                return "quadrillion";
             case 7:
-                return " quintillion";
+                return "quintillion";
             case 8:
-                return " sextillion";
+                return "sextillion";
             case 9:
-                return " septillion";
+                return "septillion";
             default:
                 return "";
         }
@@ -226,17 +269,29 @@ public class ProcessingApp extends PApplet
             sprichEiner(HunderterZiffer)
             hänge an "hundred"
 
-    sprichZehner(ZehnerZiffer)
+    sprichZehner(ZehnerZiffer, EinerZiffer)
         WENN ZehnerZiffer ist > 1 DANN
             sprich abhängig von der ZehnerZiffer:
                 "2": "twenty"
                 "3": "thirty"
-                "4": "fourty"
+                "4": "forty"
                 "5": "fifty"
                 "6": "sixty"
                 "7": "seventy"
                 "8": "eighty"
                 "9": "ninety"
+        SONST
+            sprich abhängig von der EinerZiffer:
+                "0": "ten"
+                "1": "eleven"
+                "2": "twelve"
+                "3": "thirteen"
+                "4": "fourteen"
+                "5": "fifteen"
+                "6": "sixteen"
+                "7": "seventeen"
+                "8": "eighteen"
+                "9": "nineteen"
 
     sprichEiner(EinerZiffer)
         WENN EinerZiffer ist > 0 DANN
