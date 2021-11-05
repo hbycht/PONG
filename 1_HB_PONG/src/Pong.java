@@ -1,4 +1,5 @@
 import processing.core.PApplet;
+import processing.sound.*;
 
 public class Pong extends PApplet
 {
@@ -9,8 +10,8 @@ public class Pong extends PApplet
 
     // * SETUP * //
     // PLAYGROUND //
-    int wPlayground = 1000;     // Width Playground
-    int hPlayground = 500;      // Height Playground
+    int wPlayground = 1200;     // Width Playground
+    int hPlayground = 600;      // Height Playground
     int weightBoarder = 30;     // Thickness of the Boarders
     int spacingBoarder = 10;    // Spacing from Boarder to Window
     int winH = hPlayground + 2 * (weightBoarder + spacingBoarder); // Set window height
@@ -23,8 +24,8 @@ public class Pong extends PApplet
     int rBall = 20;                                 // Radius of the Ball
     int cBall = 200;                                // Color of the Ball
     float vMulti;                                   // Multiplier of Ball Speed (to change over time)
-    float vMultiStart = 3.0f;                       // Starting value for vMulti
-    float vMultiChange = 1.002f;                    // Factor for changing vMulti over time
+    float vMultiStart = 5.0f;                       // Starting value for vMulti
+    float vMultiChange = 1.003f;                    // Factor for changing vMulti over time
     float vRight;                                   // Speed of the Ball in horizontal Direction
     float vDown;                                    // Speed of the Ball in vertical Direction
     float[] pBall = {wPlayground / 2, winH / 2};    // Position of the Ball
@@ -40,16 +41,25 @@ public class Pong extends PApplet
     int xPadR = wPlayground - xPadL;    // x-Position of the right Paddel
     int yPadR = winH/2;                 // y-Position of the right Paddel
     int hPadR = hPadL;                  // Height of the right Paddel
-    int cPadR = color(100);                     // Color of the right Paddel
+    int cPadR = color(100);        // Color of the right Paddel
 
     // PLAYERS //
     int scoreL = 0;
     int scoreR = 0;
-    int scorer = 0;
-
-    // STYLES //
-    boolean fullGrafix = false;
+    int scorer = 0; // 0 = no scorer, -1 = left side, 1 = right side
     int cScore = color(255);
+
+    // SOUND //
+    SoundFile collisionSound;
+    SoundFile goalSound;
+    SoundFile restartSound;
+    SoundFile lvlupSound;
+    SoundFile song_high;
+    SoundFile song_low;
+
+    // MODES //
+    boolean fullGrafix = false;
+    int scene = 0;
 
     public void settings()
     {
@@ -58,6 +68,16 @@ public class Pong extends PApplet
 
     public void setup()
     {
+        surface.setTitle("PONG by Henning Brode");
+
+        collisionSound = new SoundFile(this, "collision.wav");
+        goalSound = new SoundFile(this, "goal.wav");
+        restartSound = new SoundFile(this, "restart.wav");
+        lvlupSound = new SoundFile(this, "lvlup.wav");
+        song_high = new SoundFile(this, "song_high.wav");
+        song_low = new SoundFile(this, "song_low.wav");
+
+
         // Setting up the Playground for the first time
         topPG = weightBoarder + spacingBoarder;
         bottomPG = height - weightBoarder - spacingBoarder;
@@ -65,6 +85,8 @@ public class Pong extends PApplet
         colorMode(HSB);
 
         noLoop();
+
+        song_low.loop(1, 0.5f);
     }
 
     public void draw()
@@ -83,18 +105,34 @@ public class Pong extends PApplet
         setBallDirections();
         scorer = 0;
         loop();
+        scene = 1;
     }
 
     public void keyPressed() {
         if (key == 'g') {
             fullGrafix = !fullGrafix;
+
+            if(fullGrafix)
+            {
+                song_low.stop();
+                lvlupSound.play(1.2f);
+                song_high.loop(1, 0.6f);
+            }
+            else
+            {
+                song_high.stop();
+                collisionSound.play(0.3f);
+                song_low.loop(1, 0.5f);
+            }
         }
         else if (key == 'r') {
+            restartSound.play();
             pBall[0] = width/2;
             pBall[1] = height/2;
             scoreR = 0;
             scoreL = 0;
             noLoop();
+            scene = 0;
             setupPlayground();
             drawBall();
             drawPaddel();
@@ -105,23 +143,20 @@ public class Pong extends PApplet
     {
         // * DRAWING PLAYGROUND * //
         colorMode(HSB);
+        noStroke();
 
+        // Set some parameters according to the graphics mode
         if(fullGrafix) // Extra cool GRAFIXXX!!1!
         {
             // Settings
             background(0.7f * 255, 0.6f * 255, 0.2f * 255);
-            fill(130, 0.5f * 255, 0.6f * 255);
+            fill(130, 0.5f * 255, 0.4f * 255);
 
             cPadL = color(130, 0.7f * 255, 0.8f * 255);
             cPadR = color(130, 0.7f * 255, 0.8f * 255);
             cBall = color(30, 0.7f * 255, 0.9f * 255);
             cScore = color(30, 0.8f * 255, 1.0f * 255);
 
-            noStroke();
-
-            // Drawing boarders top & bottom
-            rect(0, 0, width, weightBoarder + spacingBoarder);
-            rect(0, bottomPG, width, weightBoarder + spacingBoarder);
 
             // Drawing CrossCircle
             int radius = 20;
@@ -137,8 +172,6 @@ public class Pong extends PApplet
             cPadR = color(140);
             cBall = color(200);
             cScore = color(180);
-
-            noStroke();
         }
 
         // Drawing boarders top & bottom
@@ -147,11 +180,16 @@ public class Pong extends PApplet
 
         showScore();
 
-        // Infos for keyboard interaction
-        fill(240);
+        // Information for user interactions
+        fill(cScore);
         textAlign(CENTER);
         textSize(weightBoarder * 0.6f);
         text("CONTROLS: 'R' to reset score | 'G' for full graphics", width/2, bottomPG + weightBoarder * 0.8f);
+
+        if(scene == 0){
+            textLeading(30);
+            text("CLICK TO START\nMove mouse to control paddles.", width/2, height/2 + 50);
+        }
     }
 
     private void drawMiddleLine(int numLines)
@@ -315,17 +353,20 @@ public class Pong extends PApplet
         {
             // set Ball direction to absolute positive (to the right)
             vRight = abs(vRight);
+            collisionSound.play(1.4f);
         }
         else if(pB[0] + rBall > xPadR - weightBoarder/2 && pB[1] > yPadR - hPadR/2 && pB[1] < yPadR + hPadR/2)
         {
             // set Ball direction to absolute negative (to the left)
             vRight = abs(vRight) * -1;
+            collisionSound.play(1.4f);
         }
 
         // Y - Collision with top & bottom boarder
         if(pB[1] - rBall < topPG || pB[1] + rBall > bottomPG)
         {
             vDown *= -1;
+            collisionSound.play(1);
         }
 
         // check if someone scores (the ball goes over the right or left edge of the window)
@@ -346,23 +387,41 @@ public class Pong extends PApplet
         // Ball over left edge
         if(pBall[0] - rBall < 0)
         {
+            goalSound.play(1, 0.7f);
             scoreR++;
             scorer = 1;
             noLoop();
+            scene = 0;
 
             setupPlayground();
             drawPaddel();
+
+            // Show score sign
+            fill(0, 160, 150);
+            rectMode(CENTER);
+            rect(width/2, height/2, width/2.5f, 40);
+            fill(cScore);
+            text("Right Player scores!", width/2, height/2 +5);
         }
 
         // Ball over right edge
         if(pBall[0] + rBall > width)
         {
+            goalSound.play(1, 0.7f);
             scoreL++;
             scorer = -1;
             noLoop();
+            scene = 0;
 
             setupPlayground();
             drawPaddel();
+
+            // Show score sign
+            fill(0, 160, 150);
+            rectMode(CENTER);
+            rect(width/2, height/2, width/2.5f, 40);
+            fill(cScore);
+            text("Left Player scores!", width/2, height/2 +5);
         }
     }
 
@@ -397,11 +456,11 @@ public class Pong extends PApplet
         textLeading(weightBoarder * 0.8f);
         // Left Score
         textAlign(RIGHT);
-        text("("+scoreL+")", width/2 - 20, topPG - 10);
+        text("("+scoreL+")", width/2 - 20, topPG - 12);
         text(translateNumToWords(scoreL), width/2 - 20, 60);
         // Right Score
         textAlign(LEFT);
-        text("("+scoreR+")", width/2 + 20, topPG - 10);
+        text("("+scoreR+")", width/2 + 20, topPG - 12);
         text(translateNumToWords(scoreR), width/2 + 20, 60);
     }
 

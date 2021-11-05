@@ -2,9 +2,11 @@
   <library name="Processing4">
     <CLASSES>
       <root url="file://$PROJECT_DIR$/../../../../../../../12_CODE/03_PROCESSING/BUILD_4.0b2/processing-4.0b2/core/library" />
+      <root url="file://$PROJECT_DIR$/../../../../../../../12_CODE/03_PROCESSING/BUILD_4.0b2/processing-4.0b2/lib/sound/library" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
     <jarDirectory url="file://$PROJECT_DIR$/../../../../../../../12_CODE/03_PROCESSING/BUILD_4.0b2/processing-4.0b2/core/library" recursive="false" />
+    <jarDirectory url="file://$PROJECT_DIR$/../../../../../../../12_CODE/03_PROCESSING/BUILD_4.0b2/processing-4.0b2/lib/sound/library" recursive="false" />
   </library>
 </component>
