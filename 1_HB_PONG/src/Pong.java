@@ -10,20 +10,20 @@ public class Pong extends PApplet
 
     // * SETUP * //
     // PLAYGROUND //
-    int wPlayground = 1200;     // Width Playground
-    int hPlayground = 600;      // Height Playground
-    int weightBoarder = 30;     // Thickness of the Boarders
-    int spacingBoarder = 10;    // Spacing from Boarder to Window
-    int winH = hPlayground + 2 * (weightBoarder + spacingBoarder); // Set window height
-    int cBackground = 60;      // Color Playground (Grayscale)
-    int cBoarder = 0;          // Color Boarder
-    int topPG;                  // Top Boarder of Playground
-    int bottomPG;               // Bottom Boarder of Playground
+    int wPlayground = 1200;                                         // Width Playground
+    int hPlayground = 600;                                          // Height Playground
+    int weightBoarder = 30;                                         // Thickness of the Boarders
+    int spacingBoarder = 10;                                        // Spacing from Boarder to Window
+    int winH = hPlayground + 2 * (weightBoarder + spacingBoarder);  // Set window height (I have to set it, because Processing's global 'height' is only accessible after the setup())
+    int cBackground = 60;                                           // Color Playground (Grayscale)
+    int cBoarder = 0;                                               // Color Boarder
+    int topPG;                                                      // Top Boarder of Playground
+    int bottomPG;                                                   // Bottom Boarder of Playground
 
     // BALL //
     int rBall = 20;                                 // Radius of the Ball
     int cBall = 200;                                // Color of the Ball
-    float vMulti;                                   // Multiplier of Ball Speed (to change over time)
+    float vMulti = 0;                                   // Multiplier of Ball Speed (to change over time)
     float vMultiStart = 5.0f;                       // Starting value for vMulti
     float vMultiChange = 1.003f;                    // Factor for changing vMulti over time
     float vRight;                                   // Speed of the Ball in horizontal Direction
@@ -32,10 +32,10 @@ public class Pong extends PApplet
 
     // PADDEL //
     // Left Paddel
-    int xPadL = 10;     // x-Position of the left Paddel
-    int yPadL = winH/2; // y-Position of the left Paddel
-    int hPadL = 120;    // Height of the left Paddel
-    int cPadL = color(100);     // Color of the left Paddel
+    int xPadL = 10;                 // x-Position of the left Paddel
+    int yPadL = winH/2;             // y-Position of the left Paddel
+    int hPadL = 120;                // Height of the left Paddel
+    int cPadL = color(100);    // Color of the left Paddel
 
     // Right Paddel
     int xPadR = wPlayground - xPadL;    // x-Position of the right Paddel
@@ -50,6 +50,7 @@ public class Pong extends PApplet
     int cScore = color(255);
 
     // SOUND //
+    // Initialising some sounds
     SoundFile collisionSound;
     SoundFile goalSound;
     SoundFile restartSound;
@@ -58,8 +59,8 @@ public class Pong extends PApplet
     SoundFile song_low;
 
     // MODES //
-    boolean fullGrafix = false;
-    int scene = 0;
+    boolean fullGrafix = false; // for full graphics mode
+    int scene = 0;              // to switch through game scenes
 
     public void settings()
     {
@@ -68,7 +69,7 @@ public class Pong extends PApplet
 
     public void setup()
     {
-        surface.setTitle("PONG by Henning Brode");
+        surface.setTitle("PONG by Henning Brode"); // Set the title of the window
 
         collisionSound = new SoundFile(this, "collision.wav");
         goalSound = new SoundFile(this, "goal.wav");
@@ -83,8 +84,7 @@ public class Pong extends PApplet
         bottomPG = height - weightBoarder - spacingBoarder;
 
         colorMode(HSB);
-
-        noLoop();
+        noStroke();
 
         song_low.loop(1, 0.5f);
     }
@@ -95,22 +95,23 @@ public class Pong extends PApplet
         movePaddel();
         moveBall();
 
-        //showStats();
+        //showStats();  // to see some parameter values to check
     }
 
     public void mousePressed()
     {
-        pBall[0] = width/2;
-        pBall[1] = height/2;
-        setBallDirections();
-        scorer = 0;
-        loop();
-        scene = 1;
+        if(scene == 0){
+            resetBall();
+            vMulti = vMultiStart; // Start ball movement
+            scorer = 0;
+            scene = 1;
+        }
     }
 
     public void keyPressed() {
         if (key == 'g') {
-            fullGrafix = !fullGrafix;
+            // for full graphics mode
+            fullGrafix = !fullGrafix;   // Switch graphics mode
 
             if(fullGrafix)
             {
@@ -126,14 +127,14 @@ public class Pong extends PApplet
             }
         }
         else if (key == 'r') {
+            // to reset the game
             restartSound.play();
-            pBall[0] = width/2;
-            pBall[1] = height/2;
             scoreR = 0;
             scoreL = 0;
-            noLoop();
+            scorer = 0;
             scene = 0;
             setupPlayground();
+            resetBall();
             drawBall();
             drawPaddel();
         }
@@ -142,15 +143,13 @@ public class Pong extends PApplet
     private void setupPlayground()
     {
         // * DRAWING PLAYGROUND * //
-        colorMode(HSB);
-        noStroke();
 
         // Set some parameters according to the graphics mode
         if(fullGrafix) // Extra cool GRAFIXXX!!1!
         {
             // Settings
             background(0.7f * 255, 0.6f * 255, 0.2f * 255);
-            fill(130, 0.5f * 255, 0.4f * 255);
+            fill(130, 0.5f * 255, 0.4f * 255); // Color for boarders
 
             cPadL = color(130, 0.7f * 255, 0.8f * 255);
             cPadR = color(130, 0.7f * 255, 0.8f * 255);
@@ -166,7 +165,7 @@ public class Pong extends PApplet
         {
             // Settings
             background(cBackground);
-            fill(cBoarder);
+            fill(cBoarder); // Color for boarders
 
             cPadL = color(140);
             cPadR = color(140);
@@ -186,53 +185,72 @@ public class Pong extends PApplet
         textSize(weightBoarder * 0.6f);
         text("CONTROLS: 'R' to reset score | 'G' for full graphics", width/2, bottomPG + weightBoarder * 0.8f);
 
-        if(scene == 0){
+        // handling some game scenes
+        if(scene == 0){ // start position of the ball
+            // Information to start ball movement
             textLeading(30);
             text("CLICK TO START\nMove mouse to control paddles.", width/2, height/2 + 50);
-        }
-    }
 
-    private void drawMiddleLine(int numLines)
-    {
-        int lenLines = hPlayground / (numLines * 2 + 1);
-        fill(255);
-        for(int i = 0; i < numLines; i++)
-        {
-            rect(   width/2 - weightBoarder/8,
-                    i * 2 * lenLines + lenLines + spacingBoarder + weightBoarder,
-                    weightBoarder / 4,
-                    lenLines
-            );
+            if(scorer != 0){ // if there is a goal
+                // Show score sign
+                fill(0, 200, 150);
+                rectMode(CENTER);
+                rect(width/2, height/2 - 55, width/2.5f, 40);
+                fill(cScore);
+
+                // write down the scorer
+                if(scorer == 1) // right player scores
+                {
+                    text("-_ -    Right Player scores!    ~(^-^)~", width/2, height/2 - 50);
+                }
+                else // left player scores
+                {
+                    text("~(^-^)~    Left Player scores!    - _-", width/2, height/2 - 50);
+                }
+            }
+
         }
     }
 
     private void drawCrossCircle(int radius)
     {
-        int midX = width / 2;
-        int midY = height / 2;
-        float spacingX = 12;
-        float spacingY = 11;
+        /* What we want to draw:
+
+            X
+          X X X
+        X X X X X   ||  it depends on the radius
+          X X X
+            X
+
+         */
+
+        int midX = width / 2;   // midpoint X of playground
+        int midY = height / 2;  // midpoint Y of playground
+        float spacingX = 12;    // spacing in X between crosses
+        float spacingY = 11;    // spacing in Y between crosses
 
         // let the spacing oscillate
         spacingX *= sin(frameCount / 30f) * 0.1 + 1;
+        spacingY *= -sin(frameCount / 30f) * 0.05 + 1;
 
         // Style
-        int hue = 0;
-        int hueChange = 7;
+        int hue = 0;        // Starting hue value
+        int hueChange = 7;  // Hue changes over iteration in the loop below
         strokeWeight(1);
 
+        // to draw the crosses in every column
         for(int i = 0; i < radius; i++)
         {
+            // to draw the crosses in every row
             for(int j = radius - i; j > 0; j--)
             {
                 // right side
                 if(scorer == -1) // if left player scores
                 {
-                    stroke(240, 255, 255); // set color of the right "arrow" side to red
+                    stroke(240, 255, 255); // set color of the right "arrow" side to red (to have a feedback on a goal)
                 }
                 else // else:
                 {
-                    //stroke(hue + 2f * j * hueChange, 255, 200); // set to the pattern color
                     stroke(120 + j * hueChange/8f, 255, hue + 2f * j * hueChange); // set to the pattern color
                 }
                 // bottom right part
@@ -243,11 +261,10 @@ public class Pong extends PApplet
                 // left side
                 if(scorer == 1) // if right player scores
                 {
-                    stroke(240, 255, 255); // set color of the left "arrow" side to red
+                    stroke(240, 255, 255); // set color of the left "arrow" side to red (to have a feedback on a goal)
                 }
                 else // else:
                 {
-                    //stroke(hue + 2f * j * hueChange, 255, 200); // set to the pattern color
                     stroke(120 + j * hueChange/8f, 255, hue + 2f * j * hueChange); // set to the pattern color
                 }
                 // bottom left part
@@ -255,16 +272,17 @@ public class Pong extends PApplet
                 // top left part
                 drawCross(midX - i * spacingX, midY - j * spacingY + spacingY);
 
-                spacingY *= 0.998f;
+                spacingY *= 0.998f; // spacing changes over iteration to get this curved shape
             }
-            hue += hueChange;
-            spacingX *= 1.02f;
+            hue += hueChange; // change hue after every iteration
+            spacingX *= 1.02f; // spacing changes over iteration to get this curved shape
         }
-        noStroke();
+        noStroke(); // reset to noStroke for every other shape in my sketch
     }
 
     private void drawCross(float xPos, float yPos)
     {
+        // helper function to handle the drawing of the crosses
         int diameter = 6;
         // horizontal line
         line(xPos - diameter/2, yPos, xPos + diameter/2, yPos);
@@ -274,6 +292,13 @@ public class Pong extends PApplet
 
     private void movePaddel()
     {
+        /*
+        I have implemented the control of both paddles separately
+        even though I have them both controlled synchronously via the mouse.
+        This allows me to easily add a two-player mode in the future
+        that controls the paddles with the keyboard, for example.
+        */
+
         /// PADDEL LEFT ///
         // Control if Paddel touches top or bottom boarder
         // when it's true limit the y-Pos to the top or bottom boarder
@@ -343,23 +368,25 @@ public class Pong extends PApplet
     {
         // Draw Ball
         fill(cBall);
-        ellipse(pBall[0], pBall[1], rBall*2, rBall*2);
+        circle(pBall[0], pBall[1], rBall*2);
     }
 
     private void checkCollision(float[] pB)
     {
+        // I implemented the checkCollision function with a ball parameter because maybe I want to have more balls in the future
+
         // X - Collision with Paddels
         if(pB[0] - rBall < xPadL + weightBoarder/2 && pB[1] > yPadL - hPadL/2 && pB[1] < yPadL + hPadL/2)
         {
-            // set Ball direction to absolute positive (to the right)
+            // set Ball direction to absolute positive (towards the right)
             vRight = abs(vRight);
-            collisionSound.play(1.4f);
+            collisionSound.play(1.4f); // play sound with a higher pitch than the boarder collision sound
         }
         else if(pB[0] + rBall > xPadR - weightBoarder/2 && pB[1] > yPadR - hPadR/2 && pB[1] < yPadR + hPadR/2)
         {
-            // set Ball direction to absolute negative (to the left)
+            // set Ball direction to absolute negative (towards the left)
             vRight = abs(vRight) * -1;
-            collisionSound.play(1.4f);
+            collisionSound.play(1.4f); // play sound with a higher pitch than the boarder collision sound
         }
 
         // Y - Collision with top & bottom boarder
@@ -369,65 +396,50 @@ public class Pong extends PApplet
             collisionSound.play(1);
         }
 
-        // check if someone scores (the ball goes over the right or left edge of the window)
+        // check if someone scores ( = the ball goes over the right or left edge of the window)
         handleGoal();
     }
 
-    private void setBallDirections()
+    private void resetBall()
     {
-        vMulti = vMultiStart;
-        vRight = random(-1, 1) < 0 ? random(-0.5f, -1) : random(0.5f, 1);
+        // Reset ball position
+        pBall[0] = width / 2;
+        pBall[1] = height / 2;
+
+        // Reset ball directions
+        vMulti = 0;
+        vRight = random(-1, 1) < 0 ? random(-0.5f, -1) : random(0.5f, 1); // it limits the random values to negative -1.0 to -0.5 to positive 0.5 to 1.0
         vDown = random(-1, 1);
-        //vRight = 3;
-        //vDown = 0;
     }
 
     private void handleGoal()
     {
-        // Ball over left edge
+        // is Ball over left edge?
         if(pBall[0] - rBall < 0)
         {
             goalSound.play(1, 0.7f);
             scoreR++;
             scorer = 1;
-            noLoop();
             scene = 0;
 
-            setupPlayground();
-            drawPaddel();
-
-            // Show score sign
-            fill(0, 160, 150);
-            rectMode(CENTER);
-            rect(width/2, height/2, width/2.5f, 40);
-            fill(cScore);
-            text("Right Player scores!", width/2, height/2 +5);
+            resetBall();
         }
 
-        // Ball over right edge
+        // is Ball over right edge?
         if(pBall[0] + rBall > width)
         {
             goalSound.play(1, 0.7f);
             scoreL++;
             scorer = -1;
-            noLoop();
             scene = 0;
 
-            setupPlayground();
-            drawPaddel();
-
-            // Show score sign
-            fill(0, 160, 150);
-            rectMode(CENTER);
-            rect(width/2, height/2, width/2.5f, 40);
-            fill(cScore);
-            text("Left Player scores!", width/2, height/2 +5);
+            resetBall();
         }
     }
 
     private void showStats()
     {
-        // Show some stats //
+        // Show some params for debugging //
         fill(200, 220, 0);
         textSize(12);
         textAlign(LEFT);
@@ -456,14 +468,16 @@ public class Pong extends PApplet
         textLeading(weightBoarder * 0.8f);
         // Left Score
         textAlign(RIGHT);
-        text("("+scoreL+")", width/2 - 20, topPG - 12);
-        text(translateNumToWords(scoreL), width/2 - 20, 60);
+        text("("+scoreL+")", width/2 - 20, topPG - 12);     // score in numbers
+        text(translateNumToWords(scoreL), width/2 - 20, 60);    // score in words
         // Right Score
         textAlign(LEFT);
-        text("("+scoreR+")", width/2 + 20, topPG - 12);
-        text(translateNumToWords(scoreR), width/2 + 20, 60);
+        text("("+scoreR+")", width/2 + 20, topPG - 12);     // score in numbers
+        text(translateNumToWords(scoreR), width/2 + 20, 60);    // score in words
     }
 
+
+    /// In the following all functions to translate numbers into words ///
     private String translateNumToWords(int inputNum)
     {
 
@@ -510,11 +524,11 @@ public class Pong extends PApplet
                     outputWords += " " + addBlockEnding(blockList.length) + "\n";   // Add the corresponding ending to the block e.g. "million"
                 }
 
-                // delete the actual block
+                // delete the actual block from blockList
                 blockList = (int[][]) subset(blockList, 1, blockList.length - 1);
             }
 
-            return outputWords.toUpperCase();
+            return outputWords.toUpperCase(); // return in CAP letters
         }
     }
 
